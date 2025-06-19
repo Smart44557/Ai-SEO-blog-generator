@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SEO Blog Post Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .format-options, .word-count-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .option-card h3 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .option-card p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .blog-post {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .blog-post h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .blog-post p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .upgrade-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .upgrade-modal.active {
+            display: flex;
+        }
+
+        .upgrade-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .upgrade-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .upgrade-content .price {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .features {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .features li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .error {
+            background: #ffe6e6;
+            border: 1px solid #ffcccc;
+            color: #cc0000;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #e6ffe6;
+            border: 1px solid #ccffcc;
+            color: #006600;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .format-options, .word-count-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI SEO Blog Generator</h1>
+            <p>Transform YouTube videos into SEO-optimized blog posts</p>
+        </div>
+
+        <div class="content">
+            <!-- Step 1: Video Input -->
+            <div class="step active" id="step1">
+                <div class="input-group">
+                    <label for="videoUrl">📹 Enter YouTube Video URL:</label>
+                    <input type="url" id="videoUrl" placeholder="https://youtube.com/watch?v=..." required>
+                </div>
+                <button class="btn" onclick="processVideo()">Analyze Video 🎬</button>
+                <div id="videoError" class="error" style="display: none;"></div>
+            </div>
+
+            <!-- Step 2: Format Selection -->
+            <div class="step" id="step2">
+                <h2>🎯 Choose Your Blog Post Format:</h2>
+                <div class="format-options">
+                    <div class="option-card" data-format="standard">
+                        <h3>📝 Standard Blog Post</h3>
+                        <p>Introduction, main content, conclusion</p>
+                    </div>
+                    <div class="option-card" data-format="listicle">
+                        <h3>📋 Listicle</h3>
+                        <p>Top 10, 5 Ways to, etc.</p>
+                    </div>
+                    <div class="option-card" data-format="howto">
+                        <h3>🎯 How-to Guide</h3>
+                        <p>Step-by-step tutorial</p>
+                    </div>
+                    <div class="option-card" data-format="casestudy">
+                        <h3>📊 Case Study</h3>
+                        <p>Detailed analysis format</p>
+                    </div>
+                    <div class="option-card" data-format="problem">
+                        <h3>💡 Problem-Solution</h3>
+                        <p>Identify and solve issues</p>
+                    </div>
+                    <div class="option-card" data-format="review">
+                        <h3>🔍 Review/Analysis</h3>
+                        <p>Critical evaluation</p>
+                    </div>
+                </div>
+                <button class="btn" onclick="nextStep()" id="formatNext" disabled>Next Step ➡️</button>
+            </div>
+
+            <!-- Step 3: Word Count Selection -->
+            <div class="step" id="step3">
+                <h2>📏 Select Word Count:</h2>
+                <div class="word-count-options">
+                    <div class="option-card" data-words="400-500">
+                        <h3>🚀 Quick Read</h3>
+                        <p>400-500 words</p>
+                    </div>
+                    <div class="option-card" data-words="800-1000">
+                        <h3>📖 Standard</h3>
+                        <p>800-1000 words</p>
+                    </div>
+                    <div class="option-card" data-words="1500-2000">
+                        <h3>📚 In-depth</h3>
+                        <p>1500-2000 words</p>
+                    </div>
+                    <div class="option-card" data-words="2500-3000">
+                        <h3>📄 Comprehensive</h3>
+                        <p>2500-3000 words</p>
+                    </div>
+                    <div class="option-card" data-words="4000-5000">
+                        <h3>📰 Long-form</h3>
+                        <p>4000-5000 words</p>
+                    </div>
+                    <div class="option-card" data-words="6000-10000">
+                        <h3>🎓 Ultimate Guide</h3>
+                        <p>6000-10000 words</p>
+                    </div>
+                </div>
+                <button class="btn" onclick="nextStep()" id="wordNext" disabled>Next Step ➡️</button>
+            </div>
+
+            <!-- Step 4: Keywords -->
+            <div class="step" id="step4">
+                <h2>🔑 Keywords & Topics (Optional):</h2>
+                <div class="input-group">
+                    <label for="keywords">Target Keywords:</label>
+                    <input type="text" id="keywords" placeholder="SEO, digital marketing, content creation...">
+                </div>
+                <button class="btn" onclick="generateBlogPost()">Generate Blog Post ✨</button>
+            </div>
+
+            <!-- Step 5: Loading -->
+            <div class="step" id="step5">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <h2>🔄 Generating Your SEO Blog Post...</h2>
+                    <p>This may take a few moments. We're analyzing the video and creating human-like content.</p>
+                </div>
+            </div>
+
+            <!-- Step 6: Results -->
+            <div class="step" id="step6">
+                <h2>✅ Your SEO Blog Post is Complete!</h2>
+                <div class="blog-post" id="blogContent"></div>
+                <div class="success">
+                    🎉 <strong>FREE TRIAL USED</strong> - You've used your complimentary blog post generation.
+                </div>
+                <button class="btn" onclick="showUpgradeModal()">🔓 Upgrade to Premium</button>
+                <button class="btn" onclick="downloadBlogPost()" style="margin-left: 10px;">📥 Download Post</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Modal -->
+    <div class="upgrade-modal" id="upgradeModal">
+        <div class="upgrade-content">
+            <button class="close-btn" onclick="closeUpgradeModal()">×</button>
+            <h2>🚀 Upgrade to Premium</h2>
+            <div class="price">$29/month</div>
+            <p><strong>Premium Features:</strong></p>
+            <ul class="features">
+                <li>✨ Unlimited blog post generation</li>
+                <li>🎯 Advanced SEO optimization</li>
+                <li>📊 Keyword research integration</li>
+                <li>🔄 Multiple format options</li>
+                <li>📱 Mobile-optimized content</li>
+                <li>🚀 Priority processing</li>
+                <li>📈 Analytics dashboard</li>
+                <li>🎨 Custom branding options</li>
+            </ul>
+            <button class="btn" onclick="upgradeToPremium()">Upgrade Now 💳</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedFormat = '';
+        let selectedWordCount = '';
+        let videoData = null;
+        let hasUsedFreeTrial = localStorage.getItem('hasUsedFreeTrial') === 'true';
+
+        // Check if user has already used free trial
+        if (hasUsedFreeTrial) {
+            showUpgradeModal();
+        }
+
+        function processVideo() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const errorDiv = document.getElementById('videoError');
+            
+            if (!videoUrl) {
+                showError('Please enter a YouTube video URL');
+                return;
+            }
+
+            if (!isValidYouTubeUrl(videoUrl)) {
+                showError('Please enter a valid YouTube video URL');
+                return;
+            }
+
+            // Simulate video processing
+            errorDiv.style.display = 'none';
+            
+            // Mock video data extraction
+            videoData = {
+                title: "Sample Video Title",
+                description: "Sample video description...",
+                duration: "10:32",
+                views: "1.2M views"
+            };
+
+            nextStep();
+        }
+
+        function isValidYouTubeUrl(url) {
+            const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+            return ytRegex.test(url);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('videoError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function nextStep() {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep++;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+        }
+
+        // Format selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const formatCards = document.querySelectorAll('.format-options .option-card');
+            const wordCards = document.querySelectorAll('.word-count-options .option-card');
+            
+            formatCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    formatCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedFormat = this.dataset.format;
+                    document.getElementById('formatNext').disabled = false;
+                });
+            });
+
+            wordCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    wordCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedWordCount = this.dataset.words;
+                    document.getElementById('wordNext').disabled = false;
+                });
+            });
+        });
+
+        function generateBlogPost() {
+            if (hasUsedFreeTrial) {
+                showUpgradeModal();
+                return;
+            }
+
+            const keywords = document.getElementById('keywords').value;
+            
+            // Show loading
+            nextStep();
+            
+            // Simulate blog post generation
+            setTimeout(() => {
+                const blogContent = generateSampleBlogPost();
+                document.getElementById('blogContent').innerHTML = blogContent;
+                
+                // Mark free trial as used
+                localStorage.setItem('hasUsedFreeTrial', 'true');
+                hasUsedFreeTrial = true;
+                
+                nextStep();
+            }, 3000);
+        }
+
+        function generateSampleBlogPost() {
+            const formatTitles = {
+                'standard': 'The Ultimate Guide to ',
+                'listicle': '10 Amazing Ways to ',
+                'howto': 'How to Master ',
+                'casestudy': 'Case Study: How I ',
+                'problem': 'Solving the Biggest Problem in ',
+                'review': 'Honest Review: Is This the Best '
+            };
+
+            const title = formatTitles[selectedFormat] + 'Digital Marketing in 2025';
+            
+            return `
+                <h2>${title}</h2>
+                <p><strong>Meta Description:</strong> Discover proven strategies and insider tips that top marketers use to dominate their niche. This comprehensive guide reveals everything you need to know.</p>
+                
+                <h3>Introduction</h3>
+                <p>Have you ever wondered why some businesses seem to effortlessly attract customers while others struggle to get noticed? Well, you're not alone. After analyzing hundreds of successful campaigns, I've discovered the secret sauce that separates the winners from the wannabes.</p>
+                
+                <h3>The Game-Changing Strategy</h3>
+                <p>Here's what most people don't realize: success isn't about having the biggest budget or the fanciest tools. It's about understanding your audience so deeply that you can practically read their minds. I remember when I first learned this lesson...</p>
+                
+                <h3>Key Takeaways</h3>
+                <p>• Focus on building genuine relationships, not just collecting followers<br>
+                • Use data to drive decisions, but don't ignore your gut instincts<br>
+                • Consistency beats perfection every single time<br>
+                • Your biggest competitor is yesterday's version of yourself</p>
+                
+                <h3>What This Means for You</h3>
+                <p>The truth is, implementing these strategies isn't rocket science. But it does require commitment and the willingness to experiment. Don't be afraid to fail – that's where the real learning happens.</p>
+                
+                <h3>Ready to Take Action?</h3>
+                <p>If you're serious about transforming your approach, start with just one strategy from this guide. Master it completely before moving on to the next. Trust me, this focused approach will yield better results than trying to do everything at once.</p>
+
+                <p><em>Word Count: ${selectedWordCount} words | Format: ${selectedFormat} | SEO Score: 95/100</em></p>
+            `;
+        }
+
+        function showUpgradeModal() {
+            document.getElementById('upgradeModal').classList.add('active');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModal').classList.remove('active');
+        }
+
+        function upgradeToPremium() {
+            alert('Redirecting to payment gateway...\n\nThis would integrate with your payment system (Stripe, PayPal, etc.)');
+        }
+
+        function downloadBlogPost() {
+            const content = document.getElementById('blogContent').innerHTML;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'seo-blog-post.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Prevent multiple free trials
+        window.addEventListener('beforeunload', function() {
+            if (currentStep === 6) {
+                localStorage.setItem('hasUsedFreeTrial', 'true');
+            }
+        });
+    </script>
+</body>
+</html>
